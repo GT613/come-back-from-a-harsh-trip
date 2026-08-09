@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#17130d">
+  <meta name="description" content="《逆旅来归》同人考古寻宝小游戏：勘测沙海、发掘遗物、破解天镜古城。">
+  <title>逆旅来归：天镜寻踪</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <audio id="bgm" preload="auto" loop src="assets/desert-theme.mp3"></audio>
+    <section id="titleScreen" class="screen title-screen active" aria-label="游戏标题">
+      <div class="title-mist"></div>
+      <div class="title-content">
+        <p class="eyebrow">逆旅来归 · 非剧情向考古游戏</p>
+        <h1>天镜寻踪</h1>
+        <p class="seal">沙海勘探记录 · 第 017 号</p>
+        <p class="lead">风沙会掩埋方向，也会露出答案。组建勘探队，在古城消失前带回尽可能多的文明证据。</p>
+        <div class="title-actions">
+          <button class="primary big" id="newGameBtn">进入勘探营地</button>
+          <button class="ghost big" id="continueBtn" hidden>继续上次记录</button>
+        </div>
+        <button class="sound-toggle" data-sound aria-label="切换声音">声音：开</button>
+      </div>
+      <div class="scroll-hint">点击开始 · 鼠标与触屏均可操作</div>
+    </section>
+
+    <section id="campScreen" class="screen camp-screen" aria-label="勘探营地">
+      <div class="camp-shell">
+        <header class="camp-head">
+          <div><p class="eyebrow">天镜联合勘探营地</p><h2>今日风向适合出发</h2><p>整备器材、查看长期档案，然后开启一次随机生成的沙海勘探。</p></div>
+          <div class="camp-head-actions"><button class="sound-toggle camp-sound" data-sound aria-label="切换声音">音乐：开</button><div class="profile-badge"><span>勘探员等级</span><b id="profileLevel">01</b><small id="profileXp">0 / 500 经验</small></div></div>
+        </header>
+        <div class="camp-grid">
+          <section class="camp-main">
+            <p class="eyebrow">行动方案</p>
+            <div class="difficulty-list" id="difficultyList">
+              <button class="difficulty active" data-difficulty="field"><b>田野调查</b><span>标准资源 · 完整提示 · 100% 价值</span></button>
+              <button class="difficulty" data-difficulty="expert"><b>专家勘探</b><span>资源紧张 · 风沙频繁 · 150% 价值</span></button>
+              <button class="difficulty locked" data-difficulty="mirage"><b>天镜挑战</b><span>等级 3 解锁 · 未知规则 · 220% 价值</span></button>
+            </div>
+            <div class="seed-row"><span>本次勘探编号</span><b id="seedValue">TJ-000000</b><button id="rerollSeed">更换区域</button></div>
+            <button class="primary big" id="campStartBtn">组建本次队伍</button>
+          </section>
+          <section class="archive-panel">
+            <div class="archive-title"><div><p class="eyebrow">永久档案</p><h3>天镜博物志</h3></div><button id="codexBtn" class="ghost">查看图鉴</button></div>
+            <div class="archive-stats"><div><b id="archiveRuns">0</b><span>勘探次数</span></div><div><b id="archiveBest">0</b><span>最高价值</span></div><div><b id="archiveFound">0/9</b><span>遗物图鉴</span></div></div>
+            <div class="milestones" id="milestones"></div>
+          </section>
+          <section class="upgrade-panel">
+            <p class="eyebrow">营地改良</p><h3>研究经费 <em id="fundsValue">0</em></h3>
+            <div id="upgradeList" class="upgrade-list"></div>
+          </section>
+        </div>
+        <button id="campHomeBtn" class="camp-back">← 返回封面</button>
+      </div>
+    </section>
+
+    <section id="teamScreen" class="screen team-screen" aria-label="组建队伍">
+      <header class="paper-header">
+        <div><p class="eyebrow dark">出发准备</p><h2>组建三人小队</h2></div>
+        <p>依次选择三名成员。第一位担任领队，三人的专长都会在勘探中生效。</p>
+      </header>
+      <div id="characterGrid" class="character-grid"></div>
+      <footer class="team-footer">
+        <div id="teamTip">请选择领队与两名队员 · 0/3</div>
+        <button id="departBtn" class="primary" disabled>小队出发</button>
+      </footer>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen" aria-label="沙海勘探">
+      <header class="hud">
+        <div class="brand-mini"><span>逆旅来归</span><strong>天镜寻踪</strong></div>
+        <div class="resource"><span>水源</span><b id="waterValue">10</b><i id="waterBar"></i></div>
+        <div class="resource"><span>日照</span><b id="timeValue">12</b><i id="timeBar"></i></div>
+        <div class="resource score"><span>考古价值</span><b id="scoreValue">0</b></div>
+        <div class="combo-indicator" id="comboIndicator"><span>连续发现</span><b>×1.0</b></div>
+        <button class="icon-btn" id="journalBtn" aria-label="打开勘探记录">记录</button>
+        <button class="icon-btn" data-sound aria-label="切换声音">声</button>
+      </header>
+
+      <main class="expedition-layout">
+        <aside class="mission-panel">
+          <p class="eyebrow">本轮目标</p>
+          <h3>定位天镜古城</h3>
+          <p>搜集三枚不同类型的文明印记，再前往城心完成归档。</p>
+          <div class="stamp-row" id="stampRow">
+            <span data-stamp="文">文</span><span data-stamp="器">器</span><span data-stamp="星">星</span>
+          </div>
+          <div class="leader-card-mini" id="leaderMini"></div>
+          <div class="squad-condition" id="squadCondition"></div>
+          <div class="weather"><span id="weatherIcon">☀</span><div><small>沙况</small><b id="weatherText">风平</b></div></div>
+          <div class="forecast"><small>下一时段预报</small><b id="forecastText">风平</b></div>
+          <button class="danger-ghost" id="evacuateBtn">提前撤离</button>
+        </aside>
+
+        <section class="map-wrap" aria-label="古城勘探地图">
+          <div class="map-top"><span>未标定遗址 · 网格 5×5</span><span id="mapHint">选择相邻区域勘测</span></div>
+          <div id="mapGrid" class="map-grid"></div>
+          <div class="compass" aria-hidden="true"><b>北</b><span></span></div>
+        </section>
+
+        <aside class="tool-panel">
+          <p class="eyebrow">勘探工具</p>
+          <button class="tool active" data-tool="survey"><b>01</b><span><strong>罗盘勘测</strong><small>判断遗址价值</small></span></button>
+          <button class="tool" data-tool="excavate"><b>02</b><span><strong>探方发掘</strong><small>清除浮沙取样</small></span></button>
+          <button class="tool" data-tool="decode"><b>03</b><span><strong>纹样辨识</strong><small>破解文明印记</small></span></button>
+          <button class="tool rest-tool" id="restBtn"><b>04</b><span><strong>扎营整备</strong><small>消耗日照恢复状态</small></span></button>
+          <div class="field-log"><span>即时记录</span><p id="fieldLog">老马校正了方位，第一枚木桩已经钉进沙地。</p></div>
+        </aside>
+      </main>
+    </section>
+
+    <div id="modal" class="modal" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button id="modalClose" class="modal-close" aria-label="关闭">×</button>
+        <div id="modalContent"></div>
+      </div>
+    </div>
+
+    <section id="deepScreen" class="screen deep-screen" aria-label="古城深层机关">
+      <div class="deep-shell">
+        <header class="deep-header">
+          <div><p class="eyebrow">天镜古城 · 深层归档</p><h2>跨越错代回廊</h2></div>
+          <div class="depth-track"><span class="active">器物复位</span><span>拓片校准</span><span>星轨归一</span></div>
+        </header>
+        <main id="chamberContent" class="chamber-content"></main>
+        <footer class="deep-footer"><span id="deepStatus">石门已经封闭，完成三层机关才能带着记录离开。</span><b id="deepScore">完整度 100%</b></footer>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen result-screen" aria-label="勘探结算">
+      <div class="result-card">
+        <p class="eyebrow">勘探归档</p>
+        <h2 id="resultTitle">本次勘探结束</h2>
+        <div class="rank" id="resultRank">B</div>
+        <p id="resultCopy"></p>
+        <div class="result-stats" id="resultStats"></div>
+        <div class="collection" id="resultCollection"></div>
+        <div class="title-actions"><button class="primary" id="againBtn">再次勘探</button><button class="ghost" id="homeBtn">返回封面</button></div>
+      </div>
+    </section>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
